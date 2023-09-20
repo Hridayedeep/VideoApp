@@ -17,6 +17,7 @@ class ViewController: UIViewController {
         tableView.backgroundColor = .white
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.register(TableViewCell.self, forCellReuseIdentifier: String(describing: TableViewCell.self))
         view.addSubview(tableView)
         NSLayoutConstraint.activate([
@@ -44,6 +45,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.navigationController?.pushViewController(VideoPlayerVC(), animated: true)
     }
 }
 
