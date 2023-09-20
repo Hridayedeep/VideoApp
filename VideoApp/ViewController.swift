@@ -10,6 +10,7 @@ import UIKit
 class ViewController: UIViewController {
 
     private var tableView: UITableView!
+    private var viewModel: [ViewModel.Video] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,29 +27,51 @@ class ViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
+        fetchData()
     }
 
     private func fetchData() {
-        // fetch from JSON
-        tableView.reloadData()
+        guard let path = Bundle.main.path(forResource: "media", ofType: "json") else { return }
+        do {
+            let data = try NSData(contentsOfFile: path, options: .mappedIfSafe) as Data
+            let result = try JSONDecoder().decode(VideoResult.self, from: data)
+            convert(result.videos)
+            tableView.reloadData()
+        } catch {
+            print("Error caught -> ", error)
+        }
+    }
+
+    private func convert(_ videos: [Video]) {
+        viewModel = videos.map { video in
+            return ViewModel.Video(title: video.title, description: video.description, videoUrl: video.sources, isDownloaded: fileExistsInCache(mediaUrl: video.sources.absoluteString))
+        }
+    }
+
+    private func fileExistsInCache(mediaUrl: String) -> Bool {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let cachedVideoURL = documentsDirectory.appendingPathComponent(mediaUrl)
+
+        return FileManager.default.fileExists(atPath: cachedVideoURL.path)
     }
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        viewModel.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: TableViewCell.self)) else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: String(describing: TableViewCell.self)) as? TableViewCell else {
             return UITableViewCell()
         }
+        cell.configure(with: viewModel[indexPath.row])
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self.navigationController?.pushViewController(VideoPlayerVC(), animated: true)
+        navigationController?.pushViewController(VideoPlayerVC(viewModel: viewModel[indexPath.row]), animated: true)
     }
 }
 
