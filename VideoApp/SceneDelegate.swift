@@ -47,6 +47,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 
-
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        if let url = URLContexts.first?.url {
+            let alert = UIAlertController(title: "Deeplink", message: url.absoluteString, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            window?.rootViewController?.present(alert, animated: false)
+            }
+    }
 }
 
