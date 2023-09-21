@@ -6,6 +6,9 @@ This Video App is a simple implementation of a list of some public videos(.mp4s)
 - On the home page, to check whethe the video is cache'd or not, there is an icon placement on the right for every title, if the video is downloaded, we'll see a tickmark, else a download icon.
 3. The app also supports deeplinking (URL scheme based), where we can use a similar URL like this - com.videoapp://something. the action would be opening up of the Video App and ultimately shwing a popup that contains the URL info of the deeplink.
 
+XCode used - 14.3
+iOS min support - 15.0
+
 Screenshots:
 ![Screen Shot 2023-09-21 at 12 46 57 PM](https://github.com/Hridayedeep/VideoApp/assets/26848286/22e52c4b-16c6-4692-be18-f09892b839a1)
 ![Screen Shot 2023-09-21 at 12 46 52 PM](https://github.com/Hridayedeep/VideoApp/assets/26848286/21ebdfcb-187b-410d-92d5-b25ca5ba9980)
