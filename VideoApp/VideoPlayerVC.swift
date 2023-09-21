@@ -10,10 +10,9 @@ import AVKit
 
 class VideoPlayerVC: UIViewController {
 
-    var player: AVPlayer?
-    var playerLayer: AVPlayerLayer?
-    private var containerView: UIView!
-
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var playerItem: AVPlayerItem?
     private var viewModel: ViewModel.Video
 
     init(viewModel: ViewModel.Video) {
@@ -28,54 +27,45 @@ class VideoPlayerVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .gray
-        setupContainerView()
-        downloadAndCacheVideoIfNeeded()
-    }
-
-    private func setupContainerView() {
-        containerView = UIImageView()
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(containerView)
-        NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: view.topAnchor, constant: 50),
-            containerView.heightAnchor.constraint(equalToConstant: 200),
-            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-    }
-
-    func downloadAndCacheVideoIfNeeded() {
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let cachedVideoURL = documentsDirectory.appendingPathComponent(viewModel.videoUrl.pathExtension)
-        if FileManager.default.fileExists(atPath: cachedVideoURL.path) {
-            playVideoFromCache(cachedVideoURL)
+        // Check if the video is already cached
+        if let localURL = VideoProvider.getLocalURL(for: viewModel.videoUrl) {
+            // The video is already cached, so play it
+            playVideo(with: localURL)
         } else {
-            downloadAndCacheVideo(cachedVideoURL)
+            // The video is not cached, so download it
+            downloadVideo()
         }
     }
 
-    func playVideoFromCache(_ videoURL: URL) {
-        DispatchQueue.main.async {
-            self.player = AVPlayer(url: videoURL)
-            self.playerLayer = AVPlayerLayer(player: self.player)
-            self.playerLayer?.frame = self.containerView.bounds
-            self.containerView.layer.addSublayer(self.playerLayer!)
-            self.player?.play()
-        }
-    }
+    private func downloadVideo() {
+        let session = URLSession(configuration: URLSessionConfiguration.default)
+        let task = session.downloadTask(with: viewModel.videoUrl) { (location, response, error) in
+            guard error == nil, let location = location else {
+                // Handle the error
+                print("Error downloading video: \(error!.localizedDescription)")
+                return
+            }
 
-    func downloadAndCacheVideo(_ cachedVideoURL: URL) {
-        let downloadTask = URLSession.shared.downloadTask(with: viewModel.videoUrl) { (url, response, error) in
-            guard let sourceURL = url else { return }
-            do {
-                try FileManager.default.moveItem(at: sourceURL, to: cachedVideoURL)
-                print("Video downloaded and cached at: \(cachedVideoURL)")
-                self.playVideoFromCache(cachedVideoURL)
-            } catch {
-                print("Error caching video: \(error)")
+            // Save the video to local disk
+            if let localURL = VideoProvider.saveToDisk(location: location, response: response) {
+                // The video has been saved, so play it
+                DispatchQueue.main.async {
+                    self.playVideo(with: localURL)
+                }
+            } else {
+                // Failed to save the video, so handle the error
+                print("Error saving video to local disk")
             }
         }
-        downloadTask.resume()
+        task.resume()
     }
 
+    func playVideo(with url: URL) {
+        self.playerItem = AVPlayerItem(url: url)
+        self.player = AVPlayer(playerItem: self.playerItem!)
+        self.playerLayer = AVPlayerLayer(player: self.player)
+        self.playerLayer?.frame = self.view.bounds
+        self.view.layer.addSublayer(self.playerLayer!)
+        self.player?.play()
+    }
 }

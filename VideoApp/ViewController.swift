@@ -44,15 +44,8 @@ class ViewController: UIViewController {
 
     private func convert(_ videos: [Video]) {
         viewModel = videos.map { video in
-            return ViewModel.Video(title: video.title, description: video.description, videoUrl: video.sources, isDownloaded: fileExistsInCache(mediaUrl: video.sources.absoluteString))
+            return ViewModel.Video(title: video.title, description: video.description, videoUrl: video.sources, isDownloaded: (VideoProvider.getLocalURL(for: video.sources) != nil))
         }
-    }
-
-    private func fileExistsInCache(mediaUrl: String) -> Bool {
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let cachedVideoURL = documentsDirectory.appendingPathComponent(mediaUrl)
-
-        return FileManager.default.fileExists(atPath: cachedVideoURL.path)
     }
 }
 
