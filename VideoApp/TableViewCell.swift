@@ -41,19 +41,18 @@ class TableViewCell: UITableViewCell {
         rightIcon = UIImageView()
         rightIcon.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(rightIcon)
-        rightIcon.image = UIImage(systemName: "star.fill")
         NSLayoutConstraint.activate([
             rightIcon.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             rightIcon.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 10),
             rightIcon.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
             rightIcon.widthAnchor.constraint(equalToConstant: 25),
             rightIcon.heightAnchor.constraint(equalToConstant: 25),
-//            rightIcon.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
         ])
     }
 
     func configure(with viewModel: ViewModel.Video) {
         titleLabel.text = viewModel.title
-        //TODO: update icon based on downloaded/ not downloaded
+        let image = viewModel.isDownloaded ? "checkmark.circle" : "arrow.down.circle"
+        rightIcon.image = UIImage(systemName: image)
     }
 }
